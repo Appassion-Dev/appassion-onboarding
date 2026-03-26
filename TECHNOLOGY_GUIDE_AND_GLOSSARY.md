@@ -33,6 +33,8 @@ Your Computer (Windows/macOS/Linux)
 ├─ VS Code (IDE)
 │   │
 │   ├─ GitHub Copilot (AI code assistant) → [GitHub account required]
+│   ├─ GitHub Copilot Chat (conversational interface)
+│   ├─ Supabase Extension (database interface)
 │   ├─ ESLint (code quality)
 │   ├─ Prettier (code formatter)
 │   ├─ Docker extension
@@ -91,12 +93,14 @@ Your Computer (Windows/macOS/Linux)
 - **Editor**: Text editor for writing code (VS Code is more than this)
 - **Terminal/Console**: Command-line interface for running commands
 - **Shell**: Command interpreter (PowerShell on Windows, Bash on macOS/Linux)
+- **VS Code Extensions**: Add-ons that extend VS Code functionality (Copilot, Supabase, linters, etc.)
 
 ### AI & Coding Intelligence
 - **AI Copilot**: Artificial intelligence that suggests code completions and helps debug
-- **Copilot Chat**: Conversational interface with the AI (asks questions, get answers)
-- **Copilot CLI**: AI assistance in your terminal (explains commands, suggests fixes)
-- **Agent Skills**: Custom instructions that teach Copilot about your domain/conventions
+- **GitHub Copilot**: VS Code extension for inline code suggestions and completions
+- **GitHub Copilot Chat**: Chat interface within VS Code for conversational AI assistance (asks questions, get answers)
+- **Copilot CLI**: AI assistance in your terminal (explains commands, suggests fixes; installed via `gh extension install github/gh-copilot`)
+- **Agent Skills**: Custom instructions that teach Copilot about your domain/conventions (stored in `.copilot/skills/`)
 - **MCP (Model Context Protocol) Server**: Extends AI with access to custom APIs/databases
 
 ### JavaScript & Runtime
@@ -168,15 +172,17 @@ Your Computer (Windows/macOS/Linux)
 ┌─ Run dev server via npm: npm run dev
 ├─ Changes appear instantly (Vite's hot reload)
 ├─ Test your Next.js app at http://localhost:3000
+├─ Query Supabase database (use extension or CLI)
+├─ View data via Supabase Extension in VS Code
 ├─ Make database queries to local Supabase (or via Vercel's Supabase project)
 └─ Copilot helps debug errors in the terminal
 
 12:00 PM - Ask Copilot Questions
-┌─ Open Copilot Chat in VS Code
+┌─ Open Copilot Chat in VS Code (sidebar)
 ├─ Ask: "How do I implement authentication?"
 ├─ Ask: "What's wrong with this SQL query?"
 ├─ Ask: "Generate unit tests for this function"
-└─ Copilot provides answers with code examples
+└─ Copilot Chat provides answers with code examples
 
 1:00 PM - Need Help in Terminal?
 ┌─ Type a command in VS Code terminal
@@ -220,27 +226,30 @@ Your Computer (Windows/macOS/Linux)
 
 ### Essential (Install Second)
 ```
-4. GitHub Copilot ............ AI assistance (requires VS Code)
-5. Copilot CLI ............... Terminal AI (requires Node.js)
-6. npm global tools .......... Vite, Vercel, Supabase CLIs
+4. GitHub Copilot ............ AI code suggestions (requires GitHub subscription)
+5. GitHub Copilot Chat ....... Conversational AI in VS Code
+6. Supabase Extension ........ Database interface for VS Code
+7. GitHub CLI ................ Command-line interface for GitHub
+8. GitHub Copilot CLI ........ Terminal AI (via `gh extension install`)
+9. npm global tools .......... Vercel CLI, Supabase CLI
 ```
 
 ### Important (Install Third)
 ```
-7. Supabase Account .......... Backend and database
-8. Vercel Account ............ Deployment and hosting
+10. Supabase Account ......... Backend and database
+11. Vercel Account ........... Deployment and hosting
 ```
 
 ### Optional (Install If Needed)
 ```
-9. Docker .................... Optional - for local Supabase development
+12. Docker ................... Optional - for local Supabase development
 ```
 
 ### Advanced (Install When Needed)
 ```
-10. Agent Skills .............. Custom AI capabilities
-11. MCP Servers ............... Extend Copilot with custom APIs
-12. Alternative tools ......... pnpm, Turbo, etc.
+13. Agent Skills ............. Custom AI capabilities
+14. MCP Servers .............. Extend Copilot with custom APIs
+15. Alternative tools ........ pnpm, Turbo, etc.
 ```
 
 ---
@@ -268,16 +277,34 @@ Vite (Frontend Build)  +  Next.js (Full-Stack)
 Creates optimized bundles for web
 ```
 
-### VS Code ↔ Copilot ↔ GitHub
+### VS Code Extensions & Ecosystem
 ```
-Your Editor          AI Assistant        Your Account
-┌──────────┐  ←→  ┌──────────┐  ←→  ┌──────────────┐
-│ VS Code  │      │ Copilot  │      │ GitHub       │
-│ ────     │      │ ────     │      │ Account      │
-│ - Write  │      │ - Suggest│      │ - Auth tokens│
-│ - Read   │      │ - Debug  │      │ - Skills     │
-│ - Debug  │      │ - Explain│      │ - Repos      │
-└──────────┘      └──────────┘      └──────────────┘
+VS Code Editor
+│
+├─ GitHub Copilot (inline code suggestions)
+├─ GitHub Copilot Chat (conversational assistance)
+├─ Supabase Extension (database UI & management)
+├─ ESLint (code quality)
+├─ Prettier (code formatting)
+└─ Docker Extension (container management)
+
+All connect to:
+│
+├─ GitHub (for authentication & Copilot)
+├─ Supabase (for database access)
+└─ Local Services (Git, Node tools, Docker)
+```
+
+### GitHub & AI Workflow
+```
+Your GitHub Account
+    ├─ Copilot Subscription ($10/month)
+    ├─ SSH Keys (for Git authentication)
+    └─ Agent Skills (custom Copilot instructions)
+            ↓
+    VS Code Extensions (GitHub Copilot, Chat)
+            ↓
+    Terminal (Copilot CLI via gh extension)
 ```
 
 ### Next.js ↔ Supabase ↔ Vercel
@@ -393,23 +420,29 @@ Option 2: Local Supabase (Advanced - requires Docker)
 
 ### After Installation (Phase 1 Complete)
 ```
-┌──────────────────────────────────────┐
-│ Your Computer - Full Stack Ready!    │
-├──────────────────────────────────────┤
-│ ✅ Git (version control)             │
-│ ✅ VS Code + Copilot (IDE + AI)      │
-│ ✅ Node.js & npm (runtime + packages)│
-│ ✅ Vite & Next.js (build tools)      │
-│ ✅ Docker (optional - local Supabase)│
-│ ✅ Supabase CLI (backend access)     │
-│ ✅ Vercel CLI (deployment access)    │
-│ ✅ Copilot CLI (terminal AI)         │
-│ ✅ Agent Skills (custom AI)          │
-│ ✅ Accounts: GitHub, Supabase, etc.  │
-│                                      │
-│ Result: Ready to build professional│
-│ full-stack AI-assisted apps!        │
-└──────────────────────────────────────┘
+┌───────────────────────────────────────────┐
+│ Your Computer - Full Stack Ready!         │
+├───────────────────────────────────────────┤
+│ ✅ Git (version control)                  │
+│ ✅ VS Code with essential extensions:     │
+│    ├─ GitHub Copilot                      │
+│    ├─ GitHub Copilot Chat                 │
+│    └─ Supabase Extension                  │
+│ ✅ Node.js & npm (runtime + packages)     │
+│ ✅ GitHub CLI with Copilot CLI            │
+│ ✅ Vercel CLI (deployment)                │
+│ ✅ Supabase CLI (backend)                 │
+│ ✅ Docker (optional - local Supabase)     │
+│ ✅ Accounts configured:                   │
+│    ├─ GitHub (with Copilot subscription)  │
+│    ├─ Supabase (database project)         │
+│    └─ Vercel (deployment project)         │
+│ ✅ Agent Skills (custom AI instructions)  │
+│ ✅ MCP Servers (custom Copilot APIs)      │
+│                                           │
+│ Result: Ready to build professional       │
+│ full-stack AI-assisted applications!      │
+└───────────────────────────────────────────┘
 ```
 
 ---
@@ -418,14 +451,17 @@ Option 2: Local Supabase (Advanced - requires Docker)
 
 ### Version Control & Collaboration
 - Git (local version control)
-- GitHub (remote repository + collaboration)
+- GitHub (remote repository + collaboration + Copilot subscription management)
+- GitHub CLI (command-line access to GitHub)
 
 ### Development & Coding
 - VS Code (IDE)
+- GitHub Copilot (AI code suggestions)
+- GitHub Copilot Chat (conversational AI in VS Code)
+- Supabase Extension (database interface in VS Code)
 - Node.js (JavaScript runtime)
 - npm (package manager)
-- GitHub Copilot (AI assistance)
-- Copilot CLI (terminal AI)
+- Copilot CLI (terminal AI assistance)
 
 ### Frontend Development
 - Vite (build tool)
@@ -433,12 +469,13 @@ Option 2: Local Supabase (Advanced - requires Docker)
 - Next.js (React framework with backend)
 
 ### Backend & Database
-- Supabase (PostgreSQL + auth + real-time)
+- Supabase (PostgreSQL + authentication + real-time + CLI)
 - SQL (query language)
 
 ### DevOps & Deployment
-- Vercel (hosting + deployment)
-- Docker (optional - for local Supabase)
+- Vercel (hosting + deployment + CLI)
+- Docker (optional - for local Supabase via containers)
+- Docker Compose (local multi-service setup)
 
 ### AI & Extensibility
 - Agent Skills (custom Copilot instructions)
@@ -448,10 +485,11 @@ Option 2: Local Supabase (Advanced - requires Docker)
 
 ## Next Steps
 
-1. **Read** [Phase 1 Installation Guide](PHASE_1_INSTALLATION_GUIDE.md)
-2. **Use** this glossary as a reference whenever you encounter unfamiliar terms
-3. **Bookmark** the technology relationships for quick understanding
-4. **Refer back** to this guide during Phase 2 and Phase 3
+1. **Read** [Phase 1 Installation Guide](PHASE_1_INSTALLATION_GUIDE.md) for step-by-step setup
+2. **Run** the verification script (`.\verify-installation.ps1`) after installation to confirm all tools are working
+3. **Use** this glossary as a reference whenever you encounter unfamiliar terms
+4. **Bookmark** the technology relationships for quick understanding
+5. **Refer back** to this guide during Phase 2 and Phase 3
 
 ---
 
