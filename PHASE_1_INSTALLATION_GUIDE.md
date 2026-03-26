@@ -21,6 +21,62 @@ You'll be installing:
 
 ## System Requirements
 - **OS**: Windows 10 or Windows 11
+
+---
+
+## 📖 Phase 1 Contents Overview
+
+### Step 1: GitHub & Git
+- Install Git
+- Create GitHub account  
+- SSH key setup
+- Subscribe to GitHub Copilot Individual ($10/month)
+
+### Step 2: VS Code & Copilot
+- Install VS Code
+- Essential extensions:
+  - GitHub Copilot (code suggestions)
+  - GitHub Copilot Chat (conversational AI)
+  - Supabase Extension (database interface)
+  - ESLint, Prettier, Docker
+- Activate GitHub Copilot
+
+### Step 3: GitHub CLI
+- Install GitHub CLI
+- Authenticate with GitHub
+- Install Copilot CLI extension
+- Verify terminal AI assistance
+
+### Step 4: Node.js & npm
+- Install Node.js (LTS version)
+- npm installation verification
+- Update to latest npm
+
+### Step 5: Docker
+- Install Docker Desktop
+- Configure WSL 2 (Windows)
+- Verify Docker
+
+### Step 6: Vercel
+- Create Vercel account (via GitHub)
+- Install Vercel CLI globally
+
+### Step 7: Supabase
+- Create Supabase account (via GitHub)
+- Create first project
+- Install Supabase CLI globally
+
+### Step 8: Agent Skills & MCP Servers
+- Understand Agent Skills architecture
+- Create skills directory structure
+- Introduction to MCP (Model Context Protocol)
+
+### Step 9: Verification Checklist
+- Run verification script: `.\.verify-installation.ps1`
+- Check all tool versions
+- Verify connections (GitHub SSH, etc.)
+- Troubleshooting guide
+
 ---
 
 ## 1. GitHub & Git
