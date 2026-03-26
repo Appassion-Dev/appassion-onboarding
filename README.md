@@ -24,26 +24,29 @@ This onboarding program teaches you how to:
 Start here: [PHASE_1_INSTALLATION_GUIDE.md](PHASE_1_INSTALLATION_GUIDE.md)
 
 **What you'll install:**
-- Git & GitHub account setup
+- Git & GitHub account with SSH keys
+- GitHub Copilot subscription ($10/month)
+- VS Code with extensions (Copilot, Copilot Chat, Supabase)
+- GitHub CLI with Copilot CLI
 - Node.js and npm
-- VS Code with Copilot
-- GitHub Copilot CLI
-- Docker Desktop
-- Vite, Next.js tooling
-- Supabase CLI
+- Docker Desktop (for local Supabase)
 - Vercel CLI
-- AI Agent Skills & MCP Servers
+- Supabase CLI
+- Agent Skills & MCP Servers introduction
 
 **By the end of Phase 1, you'll have:**
-- ✅ Complete development environment
-- ✅ GitHub Copilot working in your IDE
+- ✅ Complete development environment fully set up
+- ✅ GitHub Copilot Chat working in your VS Code
+- ✅ GitHub Copilot CLI assisting in your terminal
 - ✅ All CLI tools installed and verified
-- ✅ Docker containerization ready
-- ✅ Backend (Supabase) & hosting (Vercel) configured
+- ✅ Docker ready for running Supabase locally
+- ✅ Backend (Supabase) & hosting (Vercel) accounts configured
+- ✅ Agent Skills directory structure ready
 
 ---
 
-### **Phase 2: Architecture & Integration** (Coming Soon)
+### **Phase 2: Architecture & Integration** ⏳
+**Status**: In Development
 **Duration**: 60-90 minutes
 **Goal**: Understand how everything works together
 
@@ -60,7 +63,8 @@ Start here: [PHASE_1_INSTALLATION_GUIDE.md](PHASE_1_INSTALLATION_GUIDE.md)
 
 ---
 
-### **Phase 3: First Full-Stack Application** (Coming Soon)
+### **Phase 3: First Full-Stack Application** ⏳
+**Status**: In Development
 **Duration**: 120-180 minutes
 **Goal**: Build a real application using the entire stack
 
@@ -79,8 +83,9 @@ Start here: [PHASE_1_INSTALLATION_GUIDE.md](PHASE_1_INSTALLATION_GUIDE.md)
 ### If you're starting from scratch:
 1. **Read** the [overview section](#overview-of-the-technology-stack) below
 2. **Follow** [Phase 1: Installation Guide](PHASE_1_INSTALLATION_GUIDE.md) step-by-step
-3. **Verify** each installation using the checklist at the end
-4. **Move on** to Phase 2 once all tools are installed
+3. **Run** the verification script: `.\verify-installation.ps1`
+4. **Review** results and troubleshoot if needed
+5. **Move on** to Phase 2 once all tools are verified
 
 ### If you already have development tools installed:
 - Skip ahead to [Phase 1: Installation Guide](PHASE_1_INSTALLATION_GUIDE.md)
@@ -96,12 +101,14 @@ Start here: [PHASE_1_INSTALLATION_GUIDE.md](PHASE_1_INSTALLATION_GUIDE.md)
 │                    Your Development Workflow                │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
-│  VS Code (IDE)                                              │
-│  ├─ GitHub Copilot (code intelligence)                      │
-│  ├─ Built-in Terminal                                       │
+│  VS Code (IDE) with Extensions:                             │
+│  ├─ GitHub Copilot (inline code suggestions)                │
+│  ├─ GitHub Copilot Chat (conversational AI)                 │
+│  ├─ Supabase Extension (database interface)                 │
+│  ├─ ESLint, Prettier, Docker                                │
 │  └─ Git integration                                          │
 │                                                             │
-│  Copilot CLI (terminal AI assistance)                       │
+│  GitHub CLI with Copilot CLI (terminal AI)                  │
 │  └─ Explain, debug, suggest commands                        │
 │                                                             │
 │  Git & GitHub (version control & collaboration)             │
@@ -109,8 +116,6 @@ Start here: [PHASE_1_INSTALLATION_GUIDE.md](PHASE_1_INSTALLATION_GUIDE.md)
 │  └─ Remote GitHub repositories                              │
 │                                                             │
 │  Node.js + npm (JavaScript runtime & package manager)       │
-│  ├─ Vite (frontend build tool)                              │
-│  └─ Next.js (full-stack React framework)                    │
 │                                                             │
 │  Supabase (Backend as a Service)                            │
 │  ├─ PostgreSQL database                                     │
@@ -139,15 +144,16 @@ Start here: [PHASE_1_INSTALLATION_GUIDE.md](PHASE_1_INSTALLATION_GUIDE.md)
 | Technology | Purpose | Why It's Used |
 |-----------|---------|--------------|
 | **VS Code** | Code editor | Industry-standard, lightweight, extensible |
-| **GitHub Copilot** | AI code assistant | Accelerates development, reduces boilerplate |
-| **Copilot CLI** | Terminal AI | Explains commands, suggests fixes |
+| **GitHub Copilot** | AI code suggestions | Accelerates development, reduces boilerplate |
+| **GitHub Copilot Chat** | Conversational AI in IDE | Ask questions, get explanations, interactive debugging |
+| **GitHub CLI** | Command-line GitHub access | Simplifies authentication and GitHub operations |
+| **Copilot CLI** | Terminal AI assistance | Explains commands, suggests fixes, helps with shell scripts |
 | **Git** | Version control | Collaboration, change tracking, workflows |
-| **GitHub** | Repository hosting | Central hub for code, collaboration, CI/CD |
+| **GitHub** | Repository hosting + AI platform | Central hub for code, collaboration, CI/CD, Copilot subscription |
 | **Node.js** | JavaScript runtime | Run JS outside browsers, build tools |
 | **npm** | Package manager | Manage project dependencies |
-| **Vite** | Frontend build tool | Lightning-fast dev server, optimized builds |
-| **Next.js** | Full-stack framework | React + backend, API routes, SSR/SSG |
 | **Supabase** | Backend-as-a-Service | PostgreSQL database, auth, real-time |
+| **Supabase Extension** | Database UI in VS Code | Query editor, visual database management |
 | **Docker** | Local Supabase | Optional - run PostgreSQL database locally without cloud dependencies |
 | **Vercel** | Hosting/Deployment | Optimize for Next.js, zero-config deployments |
 | **Agent Skills** | AI Instructions | Domain-specific AI capabilities |
@@ -157,67 +163,72 @@ Start here: [PHASE_1_INSTALLATION_GUIDE.md](PHASE_1_INSTALLATION_GUIDE.md)
 
 ## 📖 Detailed Phase 1 Contents
 
-### Phase 1A: Version Control
+### Step 1: GitHub & Git
 - Install Git
-- Create GitHub account
+- Create GitHub account  
 - SSH key setup
+- Subscribe to GitHub Copilot Individual ($10/month)
 
-### Phase 1B: Development Environment
-- Install Node.js and npm
-- Verify installation
-
-### Phase 1C: VS Code & Copilot
+### Step 2: VS Code & Copilot
 - Install VS Code
-- GitHub Copilot extension
-- Copilot Chat extension
-- Essential extensions (ESLint, Prettier, etc.)
+- Essential extensions:
+  - GitHub Copilot (code suggestions)
+  - GitHub Copilot Chat (conversational AI)
+  - Supabase Extension (database interface)
+  - ESLint, Prettier, Docker
+- Activate GitHub Copilot
 
-### Phase 1D: Copilot CLI
-- Install @github/copilot-cli
+### Step 3: GitHub CLI & Copilot CLI
+- Install GitHub CLI
 - Authenticate with GitHub
-- Shell integration
+- Install Copilot CLI extension
+- Verify terminal AI assistance
 
-### Phase 1E: Docker
+### Step 4: Node.js & npm
+- Install Node.js (LTS version)
+- npm installation verification
+- Update to latest npm
+
+### Step 5: Docker (Optional)
 - Install Docker Desktop
+- Configure WSL 2 (Windows)
 - Verify Docker
 
-### Phase 1F: Framework Tooling
-- Global Vite installation
-- Global Vercel CLI
-- Optional: pnpm, Turbo
+### Step 6: Vercel
+- Create Vercel account (via GitHub)
+- Install Vercel CLI globally
 
-### Phase 1G: Supabase
-- Install Supabase CLI
-- Create Supabase account and project
-- Retrieve connection credentials
+### Step 7: Supabase
+- Create Supabase account (via GitHub)
+- Create first project
+- Install Supabase CLI globally
 
-### Phase 1H: Vercel
-- Install Vercel CLI
-- Create Vercel account
-- Link projects
+### Phase 8: Agent Skills & MCP Servers
+- Understand Agent Skills architecture
+- Create skills directory structure
+- Introduction to MCP (Model Context Protocol)
 
-### Phase 1I: Agent Skills & MCP
-- Understand Skills architecture
-- Create Skills directory
-- MCP server basics
-
-### Phase 1J: Verification
-- Complete verification checklist
-- TroubleShooting guide
+### Phase 9: Verification
+- Run verification script: `.\verify-installation.ps1`
+- Check all tool versions
+- Verify connections (GitHub SSH, etc.)
+- Troubleshooting guide
 
 ---
 
 ## ⏱️ Time Estimates
 
 - **Phase 1 (Installation)**: 45-90 minutes
-  - Actual installation: 30-45 minutes
-  - Troubleshooting (if needed): 15-45 minutes
+  - Step-by-step installation: 30-45 minutes
+  - Account creation & authentication: 10-15 minutes
+  - Troubleshooting (if needed): 5-30 minutes
+  - Verification script: 2-3 minutes
   
-- **Phase 2 (Architecture)**: 60-90 minutes
+- **Phase 2 (Architecture)**: 60-90 minutes *(Coming Soon)*
   - Reading and understanding: 40-60 minutes
   - Hands-on verification: 20-30 minutes
   
-- **Phase 3 (First App)**: 120-180 minutes
+- **Phase 3 (First App)**: 120-180 minutes *(Coming Soon)*
   - Project setup: 20-30 minutes
   - Following along with examples: 60-90 minutes
   - Customization and exploration: 40-60 minutes
@@ -230,23 +241,14 @@ Start here: [PHASE_1_INSTALLATION_GUIDE.md](PHASE_1_INSTALLATION_GUIDE.md)
 
 Beyond the three phases, these guides provide essential information:
 
-1. **[Markdown Guide](MARKDOWN_GUIDE.md)** - Learn how to write and use Markdown
+1. **[Glossary](GLOSSARY.md)** - Understand the full stack
+   - 60+ term glossary
+
+2. **[Markdown Guide](MARKDOWN_GUIDE.md)** - Writing and formatting reference
    - Basic syntax and formatting
    - GitHub-flavored markdown features
    - Code examples and best practices
-   - Documentation patterns used in this framework
-
-2. **[Platform-Specific Reference](PLATFORM_SPECIFIC_REFERENCE.md)** - OS-optimized installation commands
-   - Windows PowerShell scripts
-   - macOS Homebrew commands
-   - Linux Ubuntu/Debian install steps
-   - Platform-specific troubleshooting
-
-3. **[Technology Guide & Glossary](TECHNOLOGY_GUIDE_AND_GLOSSARY.md)** - Understand the full stack
-   - Technology dependency map
-   - 50+ term glossary
-   - How components work together
-   - Technology relationships and diagrams
+   - Documentation patterns
 
 ---
 
@@ -296,8 +298,6 @@ Phase 1: Installation (Your first step)
 Phase 2: Understand the Architecture
     ↓
 Phase 3: Build Your First App
-    ↓
-Ready to Build Production Applications!
 ```
 
 ---
@@ -306,9 +306,9 @@ Ready to Build Production Applications!
 
 1. **AI-Assisted Development**: Using Copilot to write code faster and better
 2. **Full-Stack Architecture**: Understanding frontend, backend, and deployment
-3. **Modern Tooling**: Vite, Next.js, and the JavaScript ecosystem
+3. **Modern Tooling**: Vite, Next.js, and the Node.js ecosystem
 4. **Database Operations**: PostgreSQL through Supabase
-5. **Containerization**: Docker for development consistency
+5. **Containerization**: Docker for local Supabase testing
 6. **Continuous Deployment**: Vercel for zero-downtime updates
 7. **AI Extensibility**: Custom Agent Skills and MCP servers
 
@@ -328,14 +328,19 @@ The guide is structured for:
 ## 📊 Checklist for Completion
 
 ### Phase 1 Complete When You Have:
-- [ ] Git installed and configured
-- [ ] GitHub account with SSH keys
+- [ ] Git installed and configured with SSH keys
+- [ ] GitHub account with Copilot subscription ($10/month)
 - [ ] Node.js and npm installed
-- [ ] VS Code with Copilot extensions
-- [ ] Copilot CLI installed and authenticated
-- [ ] Docker Desktop installed
-- [ ] Vercel CLI installed
-- [ ] Supabase project created
+- [ ] VS Code with extensions:
+  - [ ] GitHub Copilot
+  - [ ] GitHub Copilot Chat
+  - [ ] Supabase Extension
+- [ ] GitHub CLI installed and authenticated
+- [ ] GitHub Copilot CLI extension installed
+- [ ] Docker Desktop installed (optional)
+- [ ] Vercel CLI installed and authenticated
+- [ ] Supabase project created and CLI installed
+- [ ] Run verification script: `.\verify-installation.ps1`
 - [ ] All verification checks passing
 - [ ] Quick reference commands bookmarked
 

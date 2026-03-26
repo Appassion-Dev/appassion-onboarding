@@ -214,11 +214,9 @@ npm --version
 
 ---
 
-## 5. Docker (Optional)
+## 5. Docker
 
-Docker allows you to run Supabase locally for development without needing a cloud connection. This is optional but recommended for a complete local development experience.
-
-**Note**: You can skip this section if you prefer to use Supabase's cloud instance during development.
+Docker is required for running Supabase locally during development. This allows you to run a PostgreSQL database on your machine without relying on cloud services.
 
 ### Step 5.1: Install Docker Desktop
 
@@ -241,7 +239,7 @@ For **Windows 10**: You may need to install WSL 2 from Microsoft Store first:
 **Then install Docker Desktop**:
 
 1. Download from [https://www.docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop)
-![](screenshots\download-docker.png)
+![](screenshots/download-docker.png)
 2. Run the installer
 3. Follow the setup wizard (all defaults are fine)
 4. Docker will detect WSL 2 and configure automatically
@@ -352,17 +350,9 @@ npx @modelcontextprotocol/mcp@latest create my-mcp-server
 
 A pre-built verification script is included in the repository to check all your installations.
 
-**Option 1: Run from repo directory**
+**From the repository directory:**
 
-If you've cloned or downloaded this guide:
-```powershell
-cd c:\path\to\appassion-onboarding
-.\verify-installation.ps1
-```
-
-**Option 2: Download just the script**
-
-If you only want the script, download `verify-installation.ps1` from the repository and run it from any directory:
+Navigate to the directory where you cloned/downloaded this guide and run:
 ```powershell
 .\verify-installation.ps1
 ```

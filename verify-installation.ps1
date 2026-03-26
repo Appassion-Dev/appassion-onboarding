@@ -112,7 +112,7 @@ try {
 }
 Write-Host ""
 
-# Docker (optional)
+# Docker
 Write-Host "Docker:" -ForegroundColor Green
 try {
     $dockerVersion = docker --version 2>&1
@@ -120,12 +120,12 @@ try {
         Write-Host $dockerVersion
         $tools += @{ name = "Docker"; status = "✅"; version = ($dockerVersion -split "," | Select-Object -First 1) }
     } else {
-        Write-Host "⚠️  Not available" -ForegroundColor Yellow
-        $tools += @{ name = "Docker"; status = "⚠️"; version = "Optional" }
+        Write-Host "❌ Not found" -ForegroundColor Red
+        $tools += @{ name = "Docker"; status = "❌"; version = "Not installed" }
     }
 } catch {
-    Write-Host "⚠️  Not installed (optional)" -ForegroundColor Yellow
-    $tools += @{ name = "Docker"; status = "⚠️"; version = "Optional" }
+    Write-Host "❌ Command failed" -ForegroundColor Red
+    $tools += @{ name = "Docker"; status = "❌"; version = "Error" }
 }
 Write-Host ""
 
@@ -172,7 +172,7 @@ $tools | ForEach-Object {
 Write-Host ""
 
 # Check if all required tools are installed
-$requiredTools = @("Git", "GitHub SSH", "Node", "npm", "VS Code", "GitHub CLI", "GitHub Copilot CLI", "Vercel CLI", "Supabase CLI")
+$requiredTools = @("Git", "GitHub SSH", "Node", "npm", "VS Code", "GitHub CLI", "GitHub Copilot CLI", "Docker", "Vercel CLI", "Supabase CLI")
 $installedRequired = ($tools | Where-Object { $_.name -in $requiredTools -and $_.status -eq "✅" }).Count
 $totalRequired = $requiredTools.Count
 

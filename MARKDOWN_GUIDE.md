@@ -198,6 +198,9 @@ interface User {
 
 function getUser(id: number): User {
   // Implementation here
+  return { id, name: '', email: '' };
+}
+```
 }
 ```
 
