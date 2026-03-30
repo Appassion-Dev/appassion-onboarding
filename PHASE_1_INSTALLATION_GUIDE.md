@@ -15,7 +15,7 @@ You'll be installing:
 - **Deployment**: Vercel
 - **Backend & Database**: Supabase (PostgreSQL)
 - **Local Supabase**: Docker (runs Supabase locally for development)
-- **AI Extensions**: Agent Skills, MCP Servers
+- **CLI Tools**: All verified and ready for Phase 2
 
 ---
 
@@ -66,12 +66,7 @@ You'll be installing:
 - Create first project
 - Install Supabase CLI globally
 
-### Step 8: Agent Skills & MCP Servers
-- Understand Agent Skills architecture
-- Create skills directory structure
-- Introduction to MCP (Model Context Protocol)
-
-### Step 9: Verification Checklist
+### Step 8: Verification Checklist
 - Run verification script: `.\.verify-installation.ps1`
 - Check all tool versions
 - Verify connections (GitHub SSH, etc.)
@@ -370,45 +365,14 @@ Verify the installation completed successfully.
 
 ---
 
-## 8. Agent Skills & MCP Servers
-
-### Step 8.1: Understanding Agent Skills
-
-Agent Skills are specialized AI instructions that extend GitHub Copilot's capabilities. They're stored in `.copilot/skills/` directories within your projects.
-
-### Step 8.2: Create Skills Directory Structure
-
-```bash
-# In your project root
-mkdir -p .copilot/skills/my-project-skill
-cd .copilot/skills/my-project-skill
-```
-
-### Step 8.3: MCP (Model Context Protocol) Servers
-
-MCP servers extend Claude/Copilot with custom APIs and data sources.
-
-#### Install Model Context Protocol
-```bash
-npm install -g @modelcontextprotocol/mcp
-```
-
-#### Create a Basic MCP Server (optional for now)
-```bash
-npx @modelcontextprotocol/mcp@latest create my-mcp-server
-```
-
----
-
-## 9. Verification Checklist
+## 8. Verification Checklist
 
 ### Running the Verification Script
 
-A pre-built verification script is included in the repository to check all your installations.
+A verification script is included to check all your installations.
 
-**From the repository directory:**
+**From your command prompt:**
 
-Navigate to the directory where you cloned/downloaded this guide and run:
 ```powershell
 .\verify-installation.ps1
 ```
@@ -442,50 +406,14 @@ Verify SSH keys are set up (see Step 1.4 in the GitHub & Git section).
 ## Next Steps
 
 After completing Phase 1, you'll be ready for:
-- **Phase 2**: Understanding how all components work together
-- **Phase 3**: Creating your first AI-assisted full stack application
-
----
-
-## Quick Reference: PowerShell Command Cheat Sheet
-
-```powershell
-# Git
-git clone <url>
-git status
-git add .
-git commit -m "message"
-git push
-git branch
-git checkout -b <branch-name>
-
-# Node & npm
-npm install
-npm start
-npm run build
-npm test
-npm install -g <package>  # Install globally
-
-# VS Code
-code .  # Open current directory
-code <file>  # Open specific file
-
-# Docker
-docker ps  # List running containers
-docker ps -a  # List all containers
-docker logs <container-name>  # View logs
-
-# Vercel
-vercel deploy  # Deploy
-vercel env pull  # Pull environment variables
-vercel logs  # View deployment logs
-
-# Supabase
-supabase init  # Initialize local Supabase
-supabase start  # Start local instance
-supabase stop  # Stop local instance
-supabase status  # Check status
-```
+- **Phase 2**: [Creating Your First Full Stack AI-Assisted Project](PHASE_2_FULLSTACK_PROJECT_GUIDE.md)
+  - Build a monorepo with React frontend + Supabase backend
+  - Set up local development workflow
+  - Share types between frontend and backend
+- **Phase 3**: Deploying Full Stack to the Cloud
+  - Deploy frontend to Vercel
+  - Deploy backend to Supabase Cloud
+  - Set up CI/CD pipeline
 
 ---
 
