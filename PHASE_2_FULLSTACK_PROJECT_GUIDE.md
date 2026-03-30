@@ -176,7 +176,7 @@ Vite scaffolds the app, installs dependencies, and starts the dev server automat
 
 Verify it runs by clicking on the link `http://localhost:5173` with `Ctrl + left click`. 
 Or manually type `http://localhost:5173` in your browser.
-You should see the default Vite + React page. 
+You should see the default Vite + React page.  
 ![Vite dev server started](screenshots/vite-started.png)
   
 Press `Ctrl+C` in the shell to stop it when done.
@@ -214,7 +214,7 @@ supabase start
 
 This pulls Docker images on first run (may take a few minutes), then starts a full local Supabase stack. When complete, you'll see output like:
 
-![Supabase Started](screenshots\supabase-started.png)
+![Supabase Started](screenshots/supabase-started.png)
 
 **Copy the `Publishable` key** — you'll need it in the next step.
 
@@ -285,10 +285,10 @@ Copilot will generate a migration file in `supabase/migrations/` with:
 Once generated, apply the migration to your local database:
 
 ```powershell
-supabase db reset
+supabase migration up
 ```
 
-> **`db reset`** recreates the local database from scratch and runs all migrations in `supabase/migrations/` in order. Safe to use during development — your local data will be wiped and rebuilt from the schema.
+> **`migration up`** applies any pending migrations to your local database without wiping it. Use this whenever you add a new migration and want to preserve existing data.
 
 ### Step 5.5: Generate Seed Data with Copilot
 
@@ -401,7 +401,7 @@ In the terminal from the /supabase folder:
 supabase gen types typescript --local > ../frontend/src/database.types.ts
 ```
 
-This reads the live schema from your running local Supabase instance and writes `frontend/src/database.types.ts` with a complete type definition for every table, view, and function.
+This connects to your locally running Supabase Docker container (started in Step 5.2) and introspects the database schema, writing `frontend/src/database.types.ts` with a complete type definition for every table, view, and function. `supabase start` must be running for this command to work.
 
 > **Re-run this command** whenever you change the schema (add a column, create a table, etc.) to keep the types in sync with the database.
 
@@ -490,46 +490,37 @@ Copilot will generate `README.md` based on your actual project files. Review it 
 
 ## Step 9: Initial Commit & Publish to GitHub
 
-Choose the path that suits you — both get the same result.
-
 ---
 
-### Path A: Terminal only
+**Step 1 — Create the repository on GitHub:**
 
-Make sure you're in the project root. The prompt should show `C:\Projects\my-first-fullstack>`. If not:
+1. Go to [github.com](https://github.com) and sign in
+2. Click **+** (top right) → **New repository**
+3. Name it `my-first-fullstack` and set visibility to **Public**
+4. Leave **"Initialize this repository"** unchecked — your local repo already has files
+5. Click **Create repository**
+6. GitHub shows a quick setup page — copy the repo URL (e.g. `https://github.com/your-username/my-first-fullstack.git`)
 
-```powershell
-cd C:\Projects\my-first-fullstack
-```
+**Step 2 — Commit your files in VS Code:**
 
-Stage and commit:
-
-```powershell
-git add .
-git commit -m "Initial commit: React + Vite frontend with Supabase backend"
-```
-
-Create the GitHub repo and push in one command:
-
-```powershell
-gh repo create my-first-fullstack --public --source=. --remote=origin --push
-```
-
----
-
-### Path B: VS Code UI only
-
-**Commit using VS Code:**
 1. Click **Source Control** (`Ctrl+Shift+G`) in the sidebar
 2. Click **+** next to **Changes** to stage all files
 3. Type `Initial commit: React + Vite frontend with Supabase backend` in the message box
 4. Click **✓ Commit**
 
-**Publish to GitHub:**
-1. In the Source Control panel, click **"Publish Branch"**
-2. VS Code will prompt you to sign in to GitHub if not already signed in
-3. Choose **Public** when asked for visibility
-4. VS Code creates the repository on GitHub and pushes automatically — no terminal needed
+**Step 3 — Connect and push:**
+
+1. In the Source Control panel, click **⋯** (More Actions) → **Remote** → **Add Remote...**
+2. Paste the repo URL you copied from GitHub
+3. Name it `origin` when prompted
+4. Click **⋯** → **Push** to upload your commits
+
+> **Alternative for Step 3**: If you're comfortable with the terminal, you can connect and push with:
+> ```powershell
+> git remote add origin https://github.com/your-username/my-first-fullstack.git
+> git branch -M main
+> git push -u origin main
+> ```
 
 ---
 
