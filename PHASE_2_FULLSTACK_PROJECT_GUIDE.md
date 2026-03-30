@@ -67,7 +67,7 @@ my-first-fullstack/
 
 **Prerequisites**: Complete Phase 1 installation guide
 - Git, GitHub account, VS Code, Node.js, npm installed
-- GitHub Copilot subscription active
+- GitHub Copilot subscription active (preferred model: **Claude Sonnet 4.6**)
 - Supabase account created (from Phase 1, Step 7)
 - Docker Desktop running
 
@@ -727,7 +727,7 @@ You now have a working full stack app running locally — React reads live data 
 
 **Prerequisites**: Complete Phase 1 installation guide
 - Git, GitHub account, VS Code, Node.js, npm installed
-- GitHub Copilot subscription active
+- GitHub Copilot subscription active (preferred model: **Claude Sonnet 4.6**)
 - Supabase account created (from Phase 1, Step 7)
 
 ---
