@@ -34,6 +34,7 @@ After completing Phase 1, you have all the foundational tools installed. Now you
   - [Step 10.1: Push Schema to Supabase Cloud](#step-101-push-schema-to-supabase-cloud)
   - [Step 10.2: Get Your Cloud Credentials](#step-102-get-your-cloud-credentials)
   - [Step 10.3: Deploy Frontend to Vercel](#step-103-deploy-frontend-to-vercel)
+- [Step 11: Fix Auth Email Redirect in Production](#step-11-fix-auth-email-redirect-in-production)
 
 ---
 
@@ -497,9 +498,8 @@ Copilot will generate `README.md` based on your actual project files. Review it 
 1. Go to [github.com](https://github.com) and sign in
 2. Click **+** (top right) → **New repository**
 3. Name it `my-first-fullstack` and set visibility to **Public**
-4. Leave **"Initialize this repository"** unchecked — your local repo already has files
-5. Click **Create repository**
-6. GitHub shows a quick setup page — copy the repo URL (e.g. `https://github.com/your-username/my-first-fullstack.git`)
+4. Click **Create repository**
+5. GitHub shows a quick setup page — copy the repo URL (e.g. `git@githib.com:art-mx/my-first-fullstack.git`)
 
 **Step 2 — Commit your files in VS Code:**
 
@@ -508,6 +508,12 @@ Copilot will generate `README.md` based on your actual project files. Review it 
 3. Type `Initial commit: React + Vite frontend with Supabase backend` in the message box
 4. Click **✓ Commit**
 
+> **Terminal alternative:**
+> ```powershell
+> git add .
+> git commit -m "Initial commit: React + Vite frontend with Supabase backend"
+> ```
+
 **Step 3 — Connect and push:**
 
 1. In the Source Control panel, click **⋯** (More Actions) → **Remote** → **Add Remote...**
@@ -515,7 +521,7 @@ Copilot will generate `README.md` based on your actual project files. Review it 
 3. Name it `origin` when prompted
 4. Click **⋯** → **Push** to upload your commits
 
-> **Alternative for Step 3**: If you're comfortable with the terminal, you can connect and push with:
+> **Terminal alternative:**
 > ```powershell
 > git remote add origin https://github.com/your-username/my-first-fullstack.git
 > git branch -M main
@@ -570,13 +576,14 @@ This runs all your migration files against the cloud database. Your schema — t
 
 You need the production API URL and `Publishable` key for the Vercel environment variables.
 
-1. Go to your Supabase Cloud project dashboard
-2. Click **Project Settings** (gear icon) → **Data API**
-3. Copy:
+1. Go to your Supabase Cloud project dashboard — both values are shown on the project home page
+2. Find:
    - **Project URL** (looks like `https://abcdefgh.supabase.co`)
-   - **Publishable** key under **Project API keys**
+   - **Publishable key** key (looks like `sb_publishable...`)
 
-Keep these handy — you'll paste them into Vercel in the next step.
+!(supabase-creds)[screenshots/supabase-creds.png] 
+
+Keep these handy — you'll paste them into Vercel in the next step.  
 
 ---
 
@@ -585,16 +592,19 @@ Keep these handy — you'll paste them into Vercel in the next step.
 **Import your GitHub repo:**
 1. Go to [vercel.com](https://vercel.com) and sign in with GitHub
 2. Click **Add New → Project**
-3. Find `my-first-fullstack` in the list and click **Import**
+3. If this is your first time, Vercel will ask you to install the **Vercel GitHub App** — click **Install** and authorize it on your GitHub account. You can grant access to all repositories or just the one you're deploying.
+4. Find `my-first-fullstack` in the list and click **Import**
 4. Set the **Root Directory** to `frontend`
 5. Under **Environment Variables**, add:
-   - `VITE_SUPABASE_URL` → your Supabase Cloud Project URL
-   - `VITE_SUPABASE_ANON_KEY` → your Supabase Cloud `Publishable` key
+   - `VITE_SUPABASE_URL` → your Supabase Cloud `Project URL`
+   - `VITE_SUPABASE_ANON_KEY` → your Supabase Cloud `Publishable key`
 6. Click **Deploy**
 
 Vercel builds your React app and gives you a live URL (e.g. `https://my-first-fullstack.vercel.app`).
 
-> **Tip**: Every time you push to the `main` branch on GitHub, Vercel rebuilds and redeploys automatically.
+> **Tip**: Every time you push a commit to GitHub, Vercel automatically rebuilds and redeploys — no manual action needed. The deployment type depends on the branch:
+> - **`main`** → Production deployment at your public URL (e.g. `https://my-first-fullstack.vercel.app`)
+> - **Any other branch** → Preview deployment at a unique URL only accessible to you and your team — useful for reviewing changes before merging
 
 ---
 
@@ -602,848 +612,41 @@ Vercel builds your React app and gives you a live URL (e.g. `https://my-first-fu
 
 ---
 
-### Step 10.4: Deploy Agentically with MCP (Optional)
+## Step 11: Fix Auth Email Redirect in Production
 
-Instead of clicking through dashboards, you can deploy entirely through Copilot Agent mode using MCP servers — Copilot talks directly to Supabase and Vercel on your behalf.
+There's a known issue with Supabase Auth in production: by default, confirmation and password-reset emails contain links that point to `http://localhost:3000` instead of your live Vercel URL. Users who click the link in their email will land on a broken page.
 
-**Connect Supabase MCP:**
+This happens because Supabase's **Site URL** defaults to localhost and needs to be updated to match your production deployment.
 
-The Supabase MCP server is hosted at `https://mcp.supabase.com/mcp` and handles authentication automatically via OAuth (no tokens needed). 
-Create a file in the project root `.vscode/settings.json`, add:
+**Fix it in the Supabase dashboard:**
 
-```json
-"mcpServers": {
-  "supabase": {
-    "url": "https://mcp.supabase.com/mcp?project_ref=your_project_ref"
-  }
-}
-```
+1. Go to your [Supabase Cloud project](https://supabase.com) and open the project
+2. In the left sidebar, click **Authentication** → **URL Configuration**
+3. Set **Site URL** to your Vercel production URL (e.g. `https://my-first-fullstack.vercel.app`)
+4. Under **Redirect URLs**, click **Add URL** and add:
+   - `https://my-first-fullstack.vercel.app/**`
+5. Click **Save**
 
-Replace `your_project_ref` with your actual Supabase project reference (found in your Supabase Cloud project URL: `https://your_project_ref.supabase.co`).
+> **Why the wildcard?** The `/**` pattern allows Supabase to redirect to any path on your domain after email confirmation — such as `/dashboard` or `/notes` — depending on where your app routes the user post-login.
 
-> **For local development**: You can also use `http://localhost:54321/mcp` when running `supabase start` — this connects Copilot directly to your local Supabase instance.
+> **Local development still works**: Your local `http://localhost:5173` is automatically included in Supabase's allowlist for local development, so you don't need to add it here.
 
-> **Security**: The MCP server is read-only by default. If you need write access for deployments, you'll be prompted to authorize via browser login.
-
-Reload VS Code (`Ctrl+Shift+P` → "Developer: Reload Window") to activate MCP.
-
-**Now deploy with a single agent prompt:**
-
-Open Copilot Chat (`Ctrl+Alt+I`) in **Agent mode** and type:
-
-```
-Use the Supabase MCP tools to help me deploy: Create a new Supabase project called "my-first-fullstack", list the tables in the database to confirm the schema pushed correctly, then tell me the project URL and anon key I need for Vercel environment variables.
-```
-
-Copilot will use the Supabase MCP server to query the database and retrieve your credentials. Copy the credentials from the chat output, then deploy to Vercel:
-
-```
-Deploy this project to Vercel. The root directory is `frontend`. Set these environment variables:
-VITE_SUPABASE_URL=<url from previous step>
-VITE_SUPABASE_ANON_KEY=<key from previous step>
-```
-
-> **Available MCP tools**: The Supabase MCP server provides tools for listing tables, migrations, running SQL, generating TypeScript types, deploying Edge Functions, managing projects, and more. See [supabase.com/docs/guides/getting-started/mcp](https://supabase.com/docs/guides/getting-started/mcp) for the full list.
-
-The agentic path is faster for repeat deployments and gives you a prompt history you can reuse across projects.
+**Verify**: Sign up with a new account on your Vercel URL. The confirmation email link should now redirect back to your live app, not localhost.
 
 ---
 
-## Quick Reference
+## Summary
 
-```powershell
-# Start local development
-supabase start                      # Start Supabase (from project root)
-cd frontend ; npm run dev           # Start React dev server
+You've completed Phase 2. Here's what you built:
 
-# Stop
-supabase stop                       # Stop Supabase
-# Ctrl+C in the frontend terminal
+- **React + Vite frontend** scaffolded and running locally at `localhost:5173`
+- **Local Supabase database** running via Docker with a `users` + `notes` schema, RLS policies, and seed data
+- **Frontend connected to Supabase** using environment variables and generated TypeScript types
+- **GitHub Copilot configured** with Supabase and React agent skills for agentic development
+- **Project published** to GitHub with an initial commit
+- **Production deployment** live on Vercel with the schema pushed to Supabase Cloud
 
-# Git
-git status
-git add .
-git commit -m "message"
-git push
-
-# Database
-supabase migration new <name>      # Create a new migration
-supabase db push                   # Push migrations to Supabase Cloud
-supabase db reset                  # Reset local DB to migrations
-supabase gen types typescript --local > frontend/src/database.types.ts  # Regenerate types after schema changes
-
-# Frontend
-cd frontend
-npm install                        # Install dependencies
-npm run build                      # Build for production
-```
-
----
-
-## Troubleshooting
-
-### `supabase start` fails
-Make sure Docker Desktop is open and running before running `supabase start`.
-
-### Frontend shows blank page or error after `npm run dev`
-Check that `frontend/.env.local` exists and contains the correct `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` values from the `supabase start` output (use the `Publishable` key).
-
-### Port 5173 already in use
-```powershell
-cd frontend
-npm run dev -- --port 5174
-```
-
-### Can't push to GitHub
-Make sure you authenticated GitHub CLI in Phase 1:
-```powershell
-gh auth status
-```
-
----
-
-## Next: Deploying to Production
-
-See **Phase 3: Deploying Full Stack to the Cloud** for:
-- Deploying the frontend to Vercel
-- Linking and pushing your local Supabase schema to Supabase Cloud
-- Setting up environment variables in production
-- CI/CD pipeline
-
----
-
-**Phase 2 Complete!**
-
-You now have a working full stack app running locally — React reads live data from a local PostgreSQL database via Supabase. Ready to ship it? Continue to Phase 3.
-
----
-
-**Last Updated**: March 2026
-**Version**: 1.0-Windows
-
----
-
-## System Requirements
-
-**Prerequisites**: Complete Phase 1 installation guide
-- Git, GitHub account, VS Code, Node.js, npm installed
-- GitHub Copilot subscription active (preferred model: **Claude Sonnet 4.6**)
-- Supabase account created (from Phase 1, Step 7)
-
----
-
-## Using VS Code's Integrated Terminal
-
-All shell commands in this guide run in VS Code's **integrated terminal** — a PowerShell prompt built directly into the editor. This keeps you in one window with code and terminal side by side.
-
-**To open the integrated terminal:**
-- Press **Ctrl+`** (backtick — the key below Escape)
-- Or go to **Terminal → New Terminal** in the menu bar
-
-VS Code opens a PowerShell terminal pre-set to your project's root folder. **Run all commands from this terminal unless a step says otherwise.**
-
-> **Tip**: Split the terminal into two panes with `Ctrl+Shift+5`. You'll need this in Step 12 to run Supabase and the frontend dev server at the same time.
-
----
-
-## Understanding Monorepos
-
-A **monorepo** (monolithic repository) is a single Git repository that contains multiple related projects/packages. Instead of separate repos for frontend, backend, database code, etc., they live together but stay logically separated.
-
-**Benefits**:
-- **Single source of truth** — one repo for the entire application
-- **Unified dependencies** — shared packages managed in one place
-- **Atomic commits** — frontend + backend changes in a single commit
-- **Easier refactoring** — change shared code once, updates everywhere
-- **Simplified CI/CD** — one pipeline handles building everything
-
-**Our structure** (using npm workspaces):
-```
-my-first-fullstack/
-├── package.json (root workspace config)
-├── apps/
-│   ├── frontend/          # React + Vite (deployed to Vercel)
-│   │   ├── package.json
-│   │   ├── src/
-│   │   └── vite.config.js
-│   └── backend/           # Supabase functions & DB schema
-│       ├── package.json
-│       └── supabase/
-├── packages/              # Shared code
-│   └── types/            # Shared TypeScript types
-└── .gitignore
-```
-
----
-
-## Step 1: Create the Monorepo Root Folder
-
-Open PowerShell (Start menu → type `powershell`) and run:
-
-```powershell
-mkdir C:\Projects\my-first-fullstack
-cd C:\Projects\my-first-fullstack
-code .
-```
-
-This creates the folder and opens it directly in VS Code. VS Code will reload with the new workspace.
-
-> **VS Code GUI alternative**: Open VS Code → **File → Open Folder** → navigate to `C:\Projects` → **New Folder** → name it `my-first-fullstack` → **Select Folder**.
-
----
-
-## Step 2: Initialize Git & Create Root Package.json
-
-### Step 2.1: Initialize Git
-
-Open the integrated terminal (`Ctrl+``) and run:
-
-```powershell
-git init
-```
-
-> **VS Code GUI alternative**: Click **Source Control** (`Ctrl+Shift+G`) → **"Initialize Repository"**.
-
-### Step 2.2: Create Root package.json with Workspaces
-
-In the terminal:
-
-```powershell
-New-Item package.json
-code package.json
-```
-
-Paste the following into the file:
-
-```json
-{
-  "name": "my-first-fullstack",
-  "version": "1.0.0",
-  "description": "A full stack project with React frontend and Supabase backend",
-  "private": true,
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ]
-}
-```
-
-This tells npm to treat `apps/` and `packages/` folders as separate workspaces (projects) that share dependencies.
-
-Save with `Ctrl+S`.
-
-> **VS Code GUI alternative**: In **Explorer** (`Ctrl+Shift+E`), click the **New File** icon → name it `package.json` → paste content → save.
-
----
-
-## Step 3: Create the Frontend (React + Vite)
-
-### Step 3.1: Create the Frontend Folder Structure
-
-In the terminal:
-
-```powershell
-mkdir apps\frontend
-```
-
-> **VS Code GUI alternative**: Right-click in **Explorer** → **New Folder** → `apps`, then inside `apps/` → **New Folder** → `frontend`.
-
-### Step 3.2: Initialize React + Vite
-
-In the terminal (from your project root):
-
-```powershell
-npm create vite@latest apps/frontend -- --template react
-```
-
-When prompted, confirm the project name and framework. Then install dependencies:
-
-```powershell
-npm install
-```
-
-This scaffolds a complete React + Vite app inside `apps/frontend/`.
-
-### Step 3.3: Update Frontend package.json
-
-The Vite template creates its own `package.json`. Keep it as-is — it already has the right name (`frontend`) for the workspace.
-
----
-
-## Step 4: Create the Backend Integration Folder
-
-The backend in this setup is primarily Supabase functions + database schema. We'll create a folder for managing those.
-
-### Step 4.1: Create Backend Folder Structure
-
-In the terminal:
-
-```powershell
-mkdir apps\backend\supabase\functions
-mkdir apps\backend\supabase\migrations
-```
-
-PowerShell creates all intermediate folders automatically.
-
-> **VS Code GUI alternative**: Right-click `apps/` in Explorer → **New Folder** → `backend`, then create `supabase/functions/` and `supabase/migrations/` inside it.
-
-### Step 4.2: Create Backend package.json
-
-In the terminal:
-
-```powershell
-New-Item apps\backend\package.json
-code apps\backend\package.json
-```
-
-Paste the following and save (`Ctrl+S`):
-
-```json
-{
-  "name": "backend",
-  "version": "1.0.0",
-  "description": "Supabase backend for full stack project",
-  "scripts": {
-    "start": "supabase start",
-    "stop": "supabase stop",
-    "studio": "supabase studio url",
-    "migrations": "supabase migrations list"
-  },
-  "dependencies": {
-    "@supabase/supabase-js": "^2.38.0"
-  }
-}
-```
-
-This package doesn't have many dependencies, but we add the Supabase JS client for future use.
-
----
-
-## Step 5: Create Shared Types Package
-
-Monorepos shine when frontend and backend share types. Let's create a shared types package.
-
-### Step 5.1: Create Packages Folder Structure
-
-```
-packages/
-└── types/
-    ├── package.json
-    └── index.ts
-```
-
-In the terminal:
-
-```powershell
-mkdir packages\types
-```
-
-> **VS Code GUI alternative**: Right-click the Explorer root → **New Folder** → `packages`, then inside `packages/` → **New Folder** → `types`.
-
-### Step 5.2: Create Types package.json
-
-In the terminal:
-
-```powershell
-New-Item packages\types\package.json
-code packages\types\package.json
-```
-
-Paste the following and save:
-
-```json
-{
-  "name": "@my-first-fullstack/types",
-  "version": "1.0.0",
-  "description": "Shared TypeScript types",
-  "main": "index.ts",
-  "private": true
-}
-```
-
-### Step 5.3: Add Sample Types
-
-In the terminal:
-
-```powershell
-New-Item packages\types\index.ts
-code packages\types\index.ts
-```
-
-Paste the following and save:
-
-```typescript
-// User types shared between frontend and backend
-export interface User {
-  id: string;
-  email: string;
-  full_name: string;
-  created_at: string;
-}
-
-export interface Profile {
-  user_id: string;
-  avatar_url?: string;
-  bio?: string;
-}
-
-export type Message = {
-  id: string;
-  content: string;
-  user_id: string;
-  created_at: string;
-};
-```
-
-These types can be imported in both frontend and backend code.
-
----
-
-## Step 6: Root .gitignore
-
-In the terminal:
-
-```powershell
-New-Item .gitignore
-code .gitignore
-```
-
-Paste the following and save:
-
-```
-# Dependencies
-node_modules/
-
-# Environment variables
-.env
-.env.local
-.env*.local
-
-# MCP config (contains API tokens)
-.vscode/mcp.json
-
-# Build outputs
-dist/
-build/
-.next/
-
-# Supabase local
-.supabase/
-
-# IDE
-.vscode/
-.idea/
-
-# OS
-.DS_Store
-Thumbs.db
-```
-
----
-
-## Step 7: Install Root Dependencies
-
-Back to PowerShell at your project root:
-
-```powershell
-npm install
-```
-
-npm reads `package.json` and the `workspaces` config, then installs dependencies for all three packages (`apps/frontend`, `apps/backend`, `packages/types`).
-
----
-
-## Step 8: Update Frontend to Use Shared Types
-
-### Step 8.1: Update Frontend package.json
-
-Open the file in the terminal:
-
-```powershell
-code apps\frontend\package.json
-```
-
-Find this section:
-```json
-"dependencies": {
-  "react": "^18.2.0",
-  "react-dom": "^18.2.0"
-}
-```
-
-Add the shared types:
-```json
-"dependencies": {
-  "react": "^18.2.0",
-  "react-dom": "^18.2.0",
-  "@my-first-fullstack/types": "workspace:*"
-}
-```
-
-The `workspace:*` tells npm to use the local version from `packages/types/`.
-
-### Step 8.2: Update Frontend App Component
-
-Open the file in the terminal:
-
-```powershell
-code apps\frontend\src\App.jsx
-```
-
-Replace its contents with:
-
-```jsx
-import { User } from '@my-first-fullstack/types';
-import './App.css';
-
-function App() {
-  // Example: You can now use shared types here
-  const currentUser: User = {
-    id: "123",
-    email: "user@example.com",
-    full_name: "John Doe",
-    created_at: new Date().toISOString(),
-  };
-
-  return (
-    <div className="App">
-      <h1>Welcome, {currentUser.full_name}!</h1>
-      <p>This is your full stack project.</p>
-    </div>
-  );
-}
-
-export default App;
-```
-
----
-
-## Step 9: Set Up Local Supabase
-
-### Step 9.1: Initialize Supabase Locally
-
-In PowerShell at your project root:
-
-```powershell
-supabase init
-```
-
-This creates a `supabase/` folder at your project root with:
-- `config.toml` — local config
-- `migrations/` — database migration files
-- `functions/` — serverless functions
-
-### Step 9.2: Start Local Supabase
-
-```powershell
-supabase start
-```
-
-This will:
-1. Download Supabase Docker images (first run only)
-2. Start PostgreSQL locally
-3. Start Supabase Studio (local admin UI)
-4. Print connection details
-
-You'll see output like:
-```
-Started supabase local development server.
-
-API URL: http://localhost:54321
-ANON_KEY: eyJ...
-SERVICE_ROLE_KEY: eyJ...
-```
-
-### Step 9.3: Create a Sample Table
-
-Supabase Studio is now running at `http://localhost:54321`. Open it and:
-
-1. Click **SQL Editor** in the left sidebar
-2. Click **New Query**
-3. Paste:
-
-```sql
-CREATE TABLE profiles (
-  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id uuid REFERENCES auth.users(id),
-  full_name text,
-  avatar_url text,
-  bio text,
-  created_at timestamp DEFAULT now()
-);
-
-ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Users can view their own profile"
-  ON profiles FOR SELECT
-  USING (auth.uid() = user_id);
-```
-
-4. Click **Run**
-
----
-
-## Step 10: Create Root README
-
-In the terminal:
-
-```powershell
-New-Item README.md
-code README.md
-```
-
-Paste in the following starter template and save:
-
-```markdown
-# my-first-fullstack
-
-A full stack web application built with React + Vite (frontend), Supabase (backend), and deployed to Vercel + Supabase Cloud.
-
-## Stack
-
-- **Frontend**: React 18, TypeScript, Vite, CSS Modules
-- **Backend**: Supabase PostgreSQL
-- **Deployment**: Vercel (frontend), Supabase Cloud (backend)
-- **Monorepo**: npm workspaces
-
-## Project Structure
-
-```
-my-first-fullstack/
-├── apps/
-│   ├── frontend/       # React + Vite app
-│   └── backend/        # Supabase configuration
-├── packages/
-│   └── types/          # Shared TypeScript types
-└── supabase/           # Local Supabase config
-```
-
-## Getting Started
-
-### Prerequisites
-- Node.js 18+
-- Supabase CLI
-- Docker (for local Supabase)
-
-### Install Dependencies
-
-```bash
-npm install
-```
-
-### Start Local Development
-
-**Terminal 1 — Start local Supabase:**
-```bash
-supabase start
-```
-
-**Terminal 2 — Start frontend dev server:**
-```bash
-cd apps/frontend
-npm run dev
-```
-
-The frontend will be available at `http://localhost:5173`.
-
-### Stop Local Supabase
-
-```bash
-supabase stop
-```
-
-## Environment Variables
-
-Create `.env.local` in `apps/frontend/`:
-
-```
-VITE_SUPABASE_URL=http://localhost:54321
-VITE_SUPABASE_ANON_KEY=<your_anon_key_from_supabase_start>
-```
-
-(Get these from the `supabase start` output)
-
-## Shared Types
-
-The `packages/types/` package contains shared TypeScript types used by frontend and backend. Update these types here and they're automatically available in both apps.
-
-```typescript
-// apps/frontend/src/App.jsx
-import { User, Profile } from '@my-first-fullstack/types';
-```
-
-## Deploying
-
-### Frontend to Vercel
-
-```bash
-cd apps/frontend
-vercel
-```
-
-### Backend to Supabase Cloud
-
-1. [Create a Supabase project](https://supabase.com/dashboard) on the cloud
-2. Link this project:
-
-```bash
-supabase link --project-ref your_project_ref
-```
-
-3. Push migrations:
-
-```bash
-supabase db push
-```
-
-## Next Steps
-
-- [ ] Add authentication with Supabase Auth
-- [ ] Build data fetching layer in frontend
-- [ ] Create Supabase functions for business logic
-- [ ] Set up CI/CD pipeline
-- [ ] Deploy to production
-```
-
----
-
-## Step 11: Initial Commit
-
-In the terminal:
-
-```powershell
-git add .
-git commit -m "Initial commit: monorepo structure with React frontend and Supabase backend"
-```
-
-> **VS Code GUI alternative**: Open **Source Control** (`Ctrl+Shift+G`) → click **+** next to **Changes** to stage all → type the commit message → click **✓ Commit**.
-
----
-
-## Step 12: Local Development Workflow
-
-Now you have a working local setup. Here's how to develop:
-
-### Running Everything Locally
-
-**Terminal 1 — Supabase backend:**
-```powershell
-supabase start
-# Prints:
-# API URL: http://localhost:54321
-# ANON_KEY: eyJ...
-```
-
-**Terminal 2 — React frontend:**
-```powershell
-cd apps/frontend
-npm run dev
-# Opens http://localhost:5173
-```
-
-### Connecting Frontend to Local Backend
-
-Create `apps/frontend/.env.local`:
-
-```
-VITE_SUPABASE_URL=http://localhost:54321
-VITE_SUPABASE_ANON_KEY=<paste_anon_key_from_terminal_1>
-```
-
-Update `apps/frontend/src/App.jsx` to connect to Supabase:
-
-```jsx
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY
-);
-
-export default function App() {
-  // Now you can use supabase.from('profiles').select() etc.
-  return <div>Connected to Supabase!</div>;
-}
-```
-
----
-
-## Step 13: GitHub Copilot Setup for Full Stack
-
-### Create .github/copilot-instructions.md
-
-In the terminal:
-
-```powershell
-mkdir .github
-New-Item .github\copilot-instructions.md
-code .github\copilot-instructions.md
-```
-
-Paste the following and save:
-
-```markdown
-# Full Stack Project Instructions
-
-## Stack
-- Frontend: React 18, TypeScript, Vite, CSS Modules
-- Backend: Supabase PostgreSQL
-- Deployment: Vercel (frontend), Supabase Cloud (backend)
-- Monorepo: npm workspaces
-
-## Conventions
-- Use TypeScript for all new files
-- Components go in `apps/frontend/src/components/`
-- Database functions in `apps/backend/supabase/functions/`
-- Shared types in `packages/types/index.ts`
-- Environment variables use `VITE_` prefix (frontend) or are database secrets
-
-## Workspace Development
-- Always run `npm install` from root (not individual apps)
-- Frontend dev: `cd apps/frontend && npm run dev`
-- Backend dev: `supabase start` from root
-- When adding shared types, update `packages/types/index.ts`
-
-## Database
-- Edit schema in Supabase Studio: `http://localhost:54321`
-- Create migrations: `supabase migration new <name>`
-- Push to cloud: `supabase db push`
-```
-
-### Update MCP Configuration
-
-Create (or update) `.vscode/mcp.json` for this project. In the terminal:
-
-```powershell
-mkdir -Force .vscode
-New-Item -Force .vscode\mcp.json
-code .vscode\mcp.json
-```
-
-Paste the following, replacing all placeholder values:
-
-```json
-{
-  "servers": {
-    "github": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-github"],
-      "env": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "ghp_your_token"
-      }
-    },
-    "supabase": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@supabase/mcp-server-supabase@latest",
-        "--supabase-url", "http://localhost:54321",
-        "--supabase-key", "eyJ..." 
-      ]
-    }
-  }
-}
-```
+**Next**: Continue to [Phase 3](#) to extend the app — adding features, refining the schema, and building with AI assistance as a daily workflow.
 
 ---
 
@@ -1495,54 +698,26 @@ vercel logs                    # View deployment logs
 
 ## Troubleshooting
 
-### "Cannot find module '@my-first-fullstack/types'"
+### "Email rate limit exceeded" during sign-up
 
-This means npm workspaces weren't properly set up. Try:
+**Symptom**: Supabase returns an `Email rate limit exceeded` error when trying to sign up or trigger a password reset.
 
-```powershell
-npm install
-```
+**Cause**: Supabase's free tier limits auth emails (confirmation, password reset) to **4 emails per hour** per project via their shared SMTP service. Repeatedly testing the sign-up flow quickly exhausts this limit.
 
-from the root folder again.
+**Fix — Option A: Disable email confirmation while testing**
 
-### "Supabase start" fails
+For development and testing against your production project, turn off mandatory email confirmation:
 
-Make sure Docker is running. Start Docker Desktop and try again:
+1. Supabase dashboard → **Authentication** → **Providers** → **Email**
+2. Toggle off **"Confirm email"**
+3. Re-enable it before going live with real users
 
-```powershell
-supabase start
-```
+**Fix — Option B: Test sign-up against your local instance**
 
-### Frontend can't connect to local Supabase
+Use `supabase start` and test at `http://localhost:5173` — local Supabase captures all emails in **Inbucket** at `http://localhost:54324` with no rate limits. This is the safest approach for iterating on auth flows.
 
-Verify `.env.local` exists in `apps/frontend/` with correct URL and keys from `supabase start` output.
+**Fix — Option C: Reuse the same test email**
 
-### Port 5173 (Vite) already in use
-
-Kill the process or use a different port:
-
-```powershell
-cd apps/frontend
-npm run dev -- --port 5174
-```
+Signing up again with the same email address (e.g. `test@example.com`) typically triggers a resend rather than a new allocation, reducing how quickly you hit the limit.
 
 ---
-
-## Next: Deploying to Production
-
-See **Phase 3: Deploying Full Stack to the Cloud** for:
-- Deploying frontend to Vercel
-- Deploying backend (migrations + functions) to Supabase Cloud
-- Setting up CI/CD pipeline
-- Monitoring and debugging in production
-
----
-
-**Phase 2 Complete!**
-
-You now have a fully functional monorepo with React frontend and Supabase backend running locally. Ready to move to production? Continue to Phase 3.
-
----
-
-**Last Updated**: March 2026
-**Version**: 1.0-Windows
