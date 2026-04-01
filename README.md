@@ -65,10 +65,23 @@ Start here: [PHASE_2_FULLSTACK_PROJECT_GUIDE.md](PHASE_2_FULLSTACK_PROJECT_GUIDE
 
 ---
 
-### **Phase 3: Deploying to Production** ⏳
-**Status**: In Development
-**Duration**: 60-90 minutes  
-**Goal**: Deploy your full stack to production
+### **Phase 3: Extending Your App with AI-Assisted Feature Development** ✅ Complete & Ready
+**Duration**: 3-4 hours (self-paced, each feature is self-contained)
+**Goal**: Build real features using the Research → Plan → Implement agentic workflow
+
+Start here: [PHASE_3_FEATURE_DEVELOPMENT_GUIDE.md](PHASE_3_FEATURE_DEVELOPMENT_GUIDE.md)
+
+**What you'll build:**
+- Pin notes, profile editing, soft delete / archive
+- Tags (many-to-many), full-text search, pagination
+- Optimistic UI, real-time sync across tabs
+
+**By the end of Phase 3, you'll have:**
+- ✅ 8 features shipped using the RPI workflow
+- ✅ Multiple additive migrations managed and deployed
+- ✅ Advanced Postgres patterns: tsvector, GIN indexes, partial indexes, join tables, Realtime
+- ✅ Confident use of Copilot agent skills for schema + frontend generation
+- ✅ Repeatable cycle: Research → Plan → Implement → Test → Commit → Deploy
 
 ---
 
