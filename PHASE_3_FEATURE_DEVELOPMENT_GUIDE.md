@@ -1,4 +1,4 @@
-# Phase 3: Extending Your App with AI-Assisted Feature Development
+﻿# Phase 3: Extending Your App with AI-Assisted Feature Development
 
 You have a deployed notes app with authentication and basic CRUD. Now you'll extend it — feature by feature — using the **Research → Plan → Implement (RPI)** agentic workflow. Each feature teaches a new concept, exercises a different part of the stack, and ships to production.
 
@@ -60,6 +60,8 @@ Read Copilot's response. If you have follow-up questions, ask them now — befor
 
 Switch to **Plan mode** (click the mode selector in Copilot Chat). Describe the full feature and ask Copilot to produce a plan — the list of files it will create or modify, the migration SQL, and the component changes.
 
+> **Skill tip**: Each prompt uses one `/skill-name` slash command — Copilot only processes the first slash command per message. Both skills are installed in `.agents/skills/` and Copilot will also apply them automatically based on context.
+
 **Review the plan carefully.** Look for:
 - Does the migration match what you learned in the Research step?
 - Are the right components being modified?
@@ -75,6 +77,8 @@ Switch to **Agent mode** and click **Implement** (or paste your refined prompt).
 2. **Review changes** — open Source Control (`Ctrl+Shift+G`) to see exactly what files changed
 3. **Stage and commit** — group related changes into a single descriptive commit
 4. **Deploy** — push schema to Supabase Cloud, push code to GitHub (which auto-deploys to Vercel)
+
+> **Autopilot tip**: You can switch Agent mode to **Autopilot** by clicking the mode indicator. In Autopilot, Copilot executes terminal commands and applies file changes without asking for confirmation at each step. This is useful once you're comfortable reviewing the plan — the agent will run `supabase migration up`, `gen types`, and write all frontend code in one pass. You can always review everything in Source Control before committing.
 
 ---
 
@@ -126,33 +130,35 @@ query to show pinned notes at the top, then by newest?
 ```
 
 **What to look for in the response**:
-- `boolean NOT NULL DEFAULT false` for the column
-- `ORDER BY pinned DESC, created_at DESC` for the query
-- The migration should be additive (ALTER TABLE, not recreating the table)
+- The column should be a boolean, not nullable, defaulting to false
+- The query should sort pinned notes first, then by newest
+- The migration should be additive — adding to the existing table, not recreating it
 
 ### Step 1.2: Plan
 
 Switch to **Plan mode**:
 
 ```
-/supabase-postgres-best-practices /vercel-react-best-practices
+/supabase-postgres-best-practices
 Add a "pin note" feature to my notes app.
 
 Backend:
-- New migration that adds a `pinned` boolean column to the notes table (default false)
+- New migration that adds a pinned boolean column to the notes table, defaulting to false
 - Update the RLS policies only if needed
 
 Frontend:
-- Update the fetch query to order by pinned DESC, then created_at DESC
+- Update the fetch query so pinned notes appear first, then by newest
 - Add a pin/unpin toggle button on each note card
-- Show a visual indicator (e.g. pin icon or accent border) on pinned notes
-- Use the existing App.css styling conventions (CSS variables, BEM-style classes)
+- Show a visual indicator (e.g. a pin icon or accent border) on pinned notes
+- Use the existing styling conventions
+
+Implementation order: write the migration first, apply it with `supabase migration up`, regenerate TypeScript types with `supabase gen types typescript --local > frontend/src/database.types.ts`, then write the frontend code using the generated types.
 ```
 
 Review the plan. Confirm:
 - It creates a **new** migration file (not editing the existing one)
 - It does NOT drop or recreate the notes table
-- It modifies `NoteList.jsx` and `App.jsx` (fetch query)
+- It modifies the note list component and the main app file
 
 ### Step 1.3: Implement
 
@@ -160,24 +166,12 @@ Switch to **Agent mode** and click **Implement**.
 
 ### Step 1.4: Test Locally
 
-1. Apply the new migration:
-   ```powershell
-   supabase migration up
-   ```
-2. Refresh `http://localhost:5173`
-3. Create a note → pin it → verify it moves to the top
-4. Unpin it → verify it returns to chronological order
-5. Check Supabase Studio (`http://localhost:54323`) — open the `notes` table and confirm the `pinned` column exists
+1. Refresh `http://localhost:5173`
+2. Create a note → pin it → verify it moves to the top
+3. Unpin it → verify it returns to chronological order
+4. Check Supabase Studio (`http://localhost:54323`) — open the `notes` table and confirm the `pinned` column exists
 
-### Step 1.5: Regenerate Types
-
-The schema changed — regenerate the TypeScript types so the frontend stays in sync:
-
-```powershell
-supabase gen types typescript --local > frontend/src/database.types.ts
-```
-
-### Step 1.6: Stage, Review & Commit
+### Step 1.5: Stage, Review & Commit
 
 1. Open **Source Control** (`Ctrl+Shift+G`)
 2. Review the changed files — you should see:
@@ -190,7 +184,7 @@ supabase gen types typescript --local > frontend/src/database.types.ts
 4. Type: `feat: add pin/unpin notes with sort order`
 5. Click **✓ Commit**
 
-### Step 1.7: Deploy
+### Step 1.6: Deploy
 
 Follow the [Deployment Checklist](#deployment-checklist-after-each-feature) at the bottom of this guide.
 
@@ -224,9 +218,9 @@ Requirements:
 - Show the user's display name (or email as fallback) in the header
 - Add a "Profile" button in the header that opens an inline profile editor (same pattern as NoteEditor)
 - The profile editor has a single field: Full Name
-- On save, update the users table via supabase.from('users').update(...)
+- On save, update the user's display name in the database
 - After saving, update the header immediately (no page reload)
-- Use existing CSS conventions and component patterns
+- Use existing styling and component patterns
 ```
 
 ### Step 2.3: Implement
@@ -270,8 +264,8 @@ What about the fetch query — should I filter in the query or in the policy?
 ```
 
 **What to look for**:
-- `archived_at timestamptz DEFAULT NULL` — null means active, non-null means archived
-- A partial index: `CREATE INDEX ... ON notes (user_id) WHERE archived_at IS NULL` — speeds up the common "show active notes" query
+- A timestamp column for archiving — null means active, a date value means archived
+- A partial index covering only active notes — speeds up the common "show active notes" query
 - Filter in the query (not the policy) so you can later add an "Archived" view
 
 ### Step 3.2: Plan
@@ -279,20 +273,22 @@ What about the fetch query — should I filter in the query or in the policy?
 Switch to **Plan mode**:
 
 ```
-/supabase-postgres-best-practices /vercel-react-best-practices
+/supabase-postgres-best-practices
 Replace hard delete with soft delete (archive) in the notes app.
 
 Backend:
-- New migration adding `archived_at timestamptz` column to notes (nullable, default null)
-- Add a partial index on user_id WHERE archived_at IS NULL
-- Keep existing RLS policies unchanged (archiving is just an UPDATE)
+- New migration adding a nullable timestamp column to the notes table to track when a note was archived
+- Add a partial index to speed up queries that only fetch active notes
+- Keep existing RLS policies unchanged (archiving is just an update)
 
 Frontend:
-- Replace the "Delete" button with an "Archive" button that sets archived_at = now()
-- Filter the main query to only show notes WHERE archived_at IS NULL
-- Add an "Archived" toggle/tab that shows archived notes
-- Add an "Unarchive" button on archived notes that sets archived_at = null
+- Replace the "Delete" button with an "Archive" button
+- Filter the main notes list to only show active (non-archived) notes
+- Add an "Archived" toggle or tab that shows archived notes
+- Add an "Unarchive" button on archived notes
 - Add a "Delete Permanently" button only visible in the archived view
+
+Implementation order: write the migration first, apply it with `supabase migration up`, regenerate TypeScript types with `supabase gen types typescript --local > frontend/src/database.types.ts`, then write the frontend code using the generated types.
 ```
 
 ### Step 3.3: Implement
@@ -301,28 +297,18 @@ Switch to **Agent mode** and click **Implement**.
 
 ### Step 3.4: Test Locally
 
-1. Apply the migration:
-   ```powershell
-   supabase migration up
-   ```
-2. Refresh the app
-3. Archive a note → it disappears from the main list
-4. Toggle to the "Archived" view → the note appears there
-5. Unarchive it → it returns to the main list
-6. Permanently delete from the archived view → confirm it's gone
-7. Check Supabase Studio → verify `archived_at` is set/cleared correctly
+1. Refresh the app
+2. Archive a note → it disappears from the main list
+3. Toggle to the "Archived" view → the note appears there
+4. Unarchive it → it returns to the main list
+5. Permanently delete from the archived view → confirm it's gone
+6. Check Supabase Studio → verify `archived_at` is set/cleared correctly
 
-### Step 3.5: Regenerate Types
-
-```powershell
-supabase gen types typescript --local > frontend/src/database.types.ts
-```
-
-### Step 3.6: Stage, Review & Commit
+### Step 3.5: Stage, Review & Commit
 
 Review changes, then commit: `feat: soft delete with archive/unarchive and permanent delete`
 
-### Step 3.7: Deploy
+### Step 3.6: Deploy
 
 Follow the [Deployment Checklist](#deployment-checklist-after-each-feature).
 
@@ -353,25 +339,23 @@ should the join table have?
 Switch to **Plan mode**:
 
 ```
-/supabase-postgres-best-practices /vercel-react-best-practices
+/supabase-postgres-best-practices
 Add a tagging system to the notes app.
 
 Backend:
 - New migration with:
-  - `tags` table (id bigint identity, user_id uuid FK, name text, unique per user)
-  - `note_tags` join table (note_id FK, tag_id FK, composite PK)
-  - FK indexes on both join table columns
-  - RLS: users can only CRUD their own tags and note_tags
+  - A tags table (one tag name per user, unique per user)
+  - A join table linking notes to tags, with indexes on both sides
+  - RLS so users can only manage their own tags and tag assignments
 - Update seed.sql with sample tags
 
 Frontend:
-- Show tags as small pills/badges on each note card
-- In the NoteEditor, add a tag input that lets users:
-  - Select from existing tags (autocomplete/dropdown)
-  - Create new tags inline
-  - Remove tags from a note
-- Add tag filtering: clicking a tag in the list filters notes to that tag
-- Use Supabase nested selects: .select('*, note_tags(tags(*))')
+- Show tags as small pills or badges on each note card
+- In the note editor, add a tag input that lets users select existing tags, create new ones inline, and remove tags from a note
+- Add tag filtering: clicking a tag filters the notes list to show only notes with that tag
+- Fetch tags alongside notes using a nested select
+
+Implementation order: write the migration first, apply it with `supabase migration up`, regenerate TypeScript types with `supabase gen types typescript --local > frontend/src/database.types.ts`, then write the frontend code using the generated types.
 ```
 
 ### Step 4.3: Implement
@@ -380,31 +364,21 @@ Switch to **Agent mode** and click **Implement**.
 
 ### Step 4.4: Test Locally
 
-1. Apply the migration:
-   ```powershell
-   supabase migration up
-   ```
-2. Optionally reset to get fresh seed data with tags:
+1. Optionally reset to get fresh seed data with tags:
    ```powershell
    supabase db reset
    ```
-3. Refresh the app
-4. Create a note with tags → verify tags appear on the card
-5. Click a tag → verify the list filters
-6. Edit a note → add/remove tags → save → verify changes persist
-7. Check Supabase Studio → inspect `tags` and `note_tags` tables, verify FK relationships
+2. Refresh the app
+3. Create a note with tags → verify tags appear on the card
+4. Click a tag → verify the list filters
+5. Edit a note → add/remove tags → save → verify changes persist
+6. Check Supabase Studio → inspect `tags` and `note_tags` tables, verify FK relationships
 
-### Step 4.5: Regenerate Types
-
-```powershell
-supabase gen types typescript --local > frontend/src/database.types.ts
-```
-
-### Step 4.6: Stage, Review & Commit
+### Step 4.5: Stage, Review & Commit
 
 Review changes (this one is bigger — migration, seed, multiple components), then commit: `feat: tagging system with many-to-many schema and tag filtering`
 
-### Step 4.7: Deploy
+### Step 4.6: Deploy
 
 Follow the [Deployment Checklist](#deployment-checklist-after-each-feature).
 
@@ -425,29 +399,30 @@ should I use? How does Supabase JS expose text search?
 ```
 
 **What to look for**:
-- A generated column: `search_vector tsvector GENERATED ALWAYS AS (to_tsvector('english', coalesce(title, '') || ' ' || coalesce(content, ''))) STORED`
-- A GIN index on the column
-- Supabase JS: `.textSearch('search_vector', query, { type: 'websearch' })`
+- A generated column that combines the note's title and content into a searchable format, stored automatically by Postgres when the row changes
+- A GIN index on that column for fast full-text lookups
+- How to call Supabase's text search method from the frontend
 
 ### Step 5.2: Plan
 
 Switch to **Plan mode**:
 
 ```
-/supabase-postgres-best-practices /vercel-react-best-practices
+/supabase-postgres-best-practices
 Add full-text search to the notes app.
 
 Backend:
-- New migration that adds a `search_vector` tsvector generated column on the notes table
-- GIN index on search_vector
-- No RLS changes needed (existing policies still apply)
+- New migration that adds a generated full-text search column combining title and content, with a GIN index for fast lookups
+- No RLS changes needed
 
 Frontend:
 - Add a search input at the top of the notes list
-- When the user types, debounce the input (300ms) and query using Supabase .textSearch()
-- If search is empty, fall back to the normal fetch (pinned first, then by date)
-- Show a "No results" message when search returns empty
-- Clear search button (X icon)
+- Debounce the input so a search only fires after the user stops typing (300ms)
+- If the search is empty, fall back to the normal notes fetch
+- Show a "No results" message when the search returns nothing
+- Add a clear button to reset the search
+
+Implementation order: write the migration first, apply it with `supabase migration up`, regenerate TypeScript types with `supabase gen types typescript --local > frontend/src/database.types.ts`, then write the frontend code using the generated types.
 ```
 
 ### Step 5.3: Implement
@@ -456,28 +431,18 @@ Switch to **Agent mode** and click **Implement**.
 
 ### Step 5.4: Test Locally
 
-1. Apply the migration:
-   ```powershell
-   supabase migration up
-   ```
-2. Refresh the app
-3. Type a word that exists in one of your note titles → verify results filter
-4. Type a word from note content → verify it also matches
-5. Clear the search → verify all notes return
-6. Search for nonsense → verify "No results" message
-7. Check Supabase Studio → run `SELECT search_vector FROM notes LIMIT 5` to see the tsvector values
+1. Refresh the app
+2. Type a word that exists in one of your note titles → verify results filter
+3. Type a word from note content → verify it also matches
+4. Clear the search → verify all notes return
+5. Search for nonsense → verify "No results" message
+6. Check Supabase Studio → open the `notes` table and confirm the search column is populated with text values for existing rows
 
-### Step 5.5: Regenerate Types
-
-```powershell
-supabase gen types typescript --local > frontend/src/database.types.ts
-```
-
-### Step 5.6: Stage, Review & Commit
+### Step 5.5: Stage, Review & Commit
 
 Commit: `feat: full-text search with tsvector, GIN index, and debounced input`
 
-### Step 5.7: Deploy
+### Step 5.6: Deploy
 
 Follow the [Deployment Checklist](#deployment-checklist-after-each-feature).
 
@@ -498,9 +463,9 @@ For a personal notes app, which is simpler?
 ```
 
 **What to look for**:
-- Offset-based with `.range(from, to)` is simpler and fine for a single-user notes list (no concurrent writes by other users shifting pages)
+- Offset-based pagination is simpler and fine for a single-user notes list (no concurrent writes by other users shifting pages)
 - Cursor-based is better for multi-user feeds — overkill here
-- Supabase automatically returns the `count` if you pass `{ count: 'exact' }` to `.select()`
+- Supabase can return the total row count alongside the data in a single query
 
 ### Step 6.2: Plan
 
@@ -511,9 +476,8 @@ Switch to **Plan mode**:
 Add pagination to the notes list — load 10 notes at a time with a "Load more" button.
 
 Requirements:
-- Change the initial fetch to load only the first 10 notes using .range(0, 9)
-- Pass { count: 'exact' } to get the total count
-- Add a "Load more" button below the list when there are more notes
+- Load only the first 10 notes on the initial fetch, along with the total count
+- Add a "Load more" button below the list when there are more notes to show
 - Clicking "Load more" fetches the next 10 and appends them to the existing list
 - Show a loading spinner on the "Load more" button while fetching
 - Hide the button when all notes are loaded
@@ -624,9 +588,9 @@ enable in Supabase config?
 ```
 
 **What to look for**:
-- Realtime is enabled per-table in Supabase config (or via SQL: `ALTER PUBLICATION supabase_realtime ADD TABLE notes`)
-- Subscribe using `supabase.channel('notes').on('postgres_changes', { event: '*', schema: 'public', table: 'notes', filter: 'user_id=eq.YOUR_UUID' }, callback)`
-- Cleanup: unsubscribe in the `useEffect` return function
+- Realtime must be enabled on a per-table basis — either through config or a migration
+- How to subscribe to insert, update, and delete events on the notes table filtered to the current user
+- How to clean up a subscription when the component unmounts (in a useEffect return function)
 - Local Supabase has Realtime enabled by default
 
 ### Step 8.2: Plan
@@ -634,19 +598,21 @@ enable in Supabase config?
 Switch to **Plan mode**:
 
 ```
-/supabase-postgres-best-practices /vercel-react-best-practices
+/supabase-postgres-best-practices
 Add real-time sync so notes update automatically across browser tabs.
 
 Backend:
-- New migration that enables Realtime on the notes table (ALTER PUBLICATION supabase_realtime ADD TABLE public.notes)
+- New migration that enables Realtime on the notes table
 
 Frontend:
-- Subscribe to postgres_changes on the notes table, filtered by the current user's user_id
-- Handle INSERT: add the new note to the list in the correct position
-- Handle UPDATE: update the changed note in the list (handles pin, edit, archive)
-- Handle DELETE: remove the note from the list
-- Set up the subscription in a useEffect with proper cleanup (unsubscribe on unmount)
-- Don't refetch the entire list on each event — apply the change directly to local state
+- Subscribe to database changes on the notes table, filtered to the current user
+- When a note is inserted, add it to the list in the correct position
+- When a note is updated, update it in the list (handles pin, edit, archive)
+- When a note is deleted, remove it from the list
+- Set up the subscription in a useEffect with proper cleanup when the component unmounts
+- Apply changes directly to local state rather than refetching the full list
+
+Implementation order: write the migration first, apply it with `supabase migration up`, regenerate TypeScript types with `supabase gen types typescript --local > frontend/src/database.types.ts`, then write the frontend code using the generated types.
 ```
 
 ### Step 8.3: Implement
@@ -655,28 +621,18 @@ Switch to **Agent mode** and click **Implement**.
 
 ### Step 8.4: Test Locally
 
-1. Apply the migration:
-   ```powershell
-   supabase migration up
-   ```
-2. Refresh the app
-3. Open a **second browser tab** to `http://localhost:5173` (signed in as the same user)
-4. In Tab 1: create a new note → verify it appears in Tab 2 automatically
-5. In Tab 2: pin a note → verify it moves to the top in Tab 1
-6. In Tab 1: archive a note → verify it disappears in Tab 2
-7. Close Tab 2 → verify no console errors (cleanup worked)
+1. Refresh the app
+2. Open a **second browser tab** to `http://localhost:5173` (signed in as the same user)
+3. In Tab 1: create a new note → verify it appears in Tab 2 automatically
+4. In Tab 2: pin a note → verify it moves to the top in Tab 1
+5. In Tab 1: archive a note → verify it disappears in Tab 2
+6. Close Tab 2 → verify no console errors (cleanup worked)
 
-### Step 8.5: Regenerate Types
-
-```powershell
-supabase gen types typescript --local > frontend/src/database.types.ts
-```
-
-### Step 8.6: Stage, Review & Commit
+### Step 8.5: Stage, Review & Commit
 
 Commit: `feat: real-time sync across tabs via Supabase Realtime`
 
-### Step 8.7: Deploy
+### Step 8.6: Deploy
 
 Follow the [Deployment Checklist](#deployment-checklist-after-each-feature).
 
@@ -696,17 +652,7 @@ supabase db push
 
 This applies any new migrations to your cloud database. Review the output — it shows which migration files were applied.
 
-### 2. Regenerate Types (if schema changed)
-
-Skip if no migration was added.
-
-```powershell
-supabase gen types typescript --local > frontend/src/database.types.ts
-```
-
-> **Note**: If you already regenerated types during the feature steps, you don't need to do it again. This is a reminder in case you forgot.
-
-### 3. Push to GitHub
+### 2. Push to GitHub
 
 ```powershell
 git push
@@ -716,7 +662,7 @@ Or in VS Code: **Source Control** → **⋯** → **Push**
 
 Vercel automatically detects the push and rebuilds your frontend. The new deployment goes live within ~60 seconds.
 
-### 4. Verify Production
+### 3. Verify Production
 
 1. Open your Vercel URL (e.g. `https://my-first-fullstack.vercel.app`)
 2. Test the feature you just deployed
