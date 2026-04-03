@@ -415,7 +415,121 @@ Review the plan carefully. Confirm:
 
 Switch to **Agent mode** and click **Implement**.
 
-### Step 3.4: Test Locally
+### Step 3.4: Add Realtime Sync for Shared Notes
+
+After the basic sharing feature works, add live updates so sharees see changes immediately — without refreshing the page.
+
+#### Why this needs its own step
+
+The basic implementation lets a sharee see shared notes when they load the page, but changes don't appear live. If an owner shares a new note, revokes a share, edits a shared note, or uploads/deletes an attachment, the sharee won't see it until they refresh. Realtime sync fixes all of these.
+
+#### Research (Ask mode)
+
+```
+@workspace /supabase-postgres-best-practices The note_shares table needs Realtime support.
+What does REPLICA IDENTITY FULL do and why is it required for Realtime DELETE events?
+How do I add a table to the Supabase Realtime publication?
+```
+
+**What to look for**:
+- By default, Postgres only includes the primary key in the WAL for DELETE events — `REPLICA IDENTITY FULL` tells it to include all columns
+- Without it, a Realtime DELETE payload only contains `{ id }` — the client can't determine which `note_id` was affected and can't remove the correct note from the list
+- `ALTER PUBLICATION supabase_realtime ADD TABLE` registers the table for Realtime broadcasting
+
+```
+@workspace /vercel-react-best-practices I need multiple Realtime subscriptions in one hook
+that track different tables and events. What's the right pattern for managing multiple
+channels with separate useEffect hooks in React? How do I prevent unnecessary channel
+recreation on re-renders?
+```
+
+**What to look for**:
+- Each channel belongs in its own `useEffect` with a cleanup that calls `removeChannel`
+- Use primitive string dependencies (not arrays or objects) to prevent Object.is from recreating channels on every render
+- A ref (`useRef`) lets event handlers access current state without adding it as a dependency that would trigger channel recreation
+
+#### Plan (Plan mode)
+
+```
+/supabase-postgres-best-practices
+Add Realtime sync for the shared notes feature. The "Shared with me" view should update
+live when shares are granted, revoked, permission is changed, note content is edited,
+notes are archived/unarchived, and attachments are uploaded or deleted.
+
+Backend:
+- New migration that:
+  - Sets REPLICA IDENTITY FULL on note_shares (so DELETE payloads include note_id
+    and shared_with_user_id, not just the PK)
+  - Adds note_shares to the Supabase Realtime publication
+
+Frontend (useSharedNotes hook):
+- Channel 1: note_shares changes
+  - Filter: shared_with_user_id=eq.{userId} (server-side for INSERT/UPDATE)
+  - INSERT (share granted): track the new note ID, fetch full note details (tags,
+    attachments, owner), prepend to the list, deduplicate
+  - DELETE (share revoked): use payload.old.note_id (available thanks to REPLICA
+    IDENTITY FULL) to remove the note from the list immediately
+  - UPDATE (permission changed): update sharePermission on the matching note in-place
+  - Note: DELETE events cannot be server-side filtered (Supabase/Postgres WAL
+    limitation) — use client-side filtering as a safety net
+
+- Channel 2: notes content updates
+  - Filter: id=in.({allSharedNoteIds}) — includes archived note IDs so that an
+    unarchive triggers an update event and the note re-appears in the visible list
+  - On UPDATE: if the note is already in the visible list, refresh its tags and
+    attachments in parallel and merge, preserving sharePermission and owner (these
+    are not on the notes row). If the note was archived (not in the visible list) and
+    now has archived_at=null, fetch full details and re-add it
+  - Derive a primitive string key from the sorted note IDs so the channel is only
+    recreated when the share set changes, not on every content update
+  - Use a ref (sharedNotesRef) for the transient visible-notes list so the event
+    handler can check visibility without adding sharedNotes to the dependency array
+
+- Channel 3: note_attachments changes
+  - note_attachments operations (upload/delete) don't touch the notes row, so
+    Channel 2 never fires for attachment changes — this channel fills that gap
+  - Filter: note_id=in.({allSharedNoteIds})
+  - INSERT: append the new attachment to the matching note's attachment list
+  - DELETE: REPLICA IDENTITY FULL (already set in a previous migration) provides
+    payload.old with note_id and id — remove the exact attachment without a refetch
+  - Recreate the channel when allSharedNoteIdsKey changes
+
+- On initial fetch: run two parallel queries — one for visible notes (full nested
+  select) and one for all shared note IDs (including archived) — so the Realtime
+  filter covers the full set from the start
+```
+
+Review the plan carefully. Confirm:
+- `REPLICA IDENTITY FULL` is set on `note_shares` — without it, DELETE payloads won't contain `note_id`
+- Channel 1 handles all three event types (INSERT, UPDATE, DELETE), with a client-side safety net for unfiltered DELETEs
+- Channel 2 tracks **all** shared note IDs including archived ones, so unarchive events are delivered
+- Channel 3 is separate because attachment operations don't trigger a notes-row UPDATE
+- Channel dependencies use primitive strings to prevent unnecessary recreation
+- A ref is used for transient state access inside event handlers
+
+#### Implement
+
+Switch to **Agent mode** and click **Implement**.
+
+#### Test Realtime Sync
+
+Open two browser windows side by side — User A (owner) and User B (sharee):
+
+1. **Share grant**: As User A, share a note with User B → verify the note appears in User B's "Shared with me" list **without** User B refreshing
+2. **Content edit**: As User A, edit the shared note's content → verify User B sees the updated text live
+3. **Permission change**: As User A, change the permission from view to edit → verify User B's controls update without refresh (editing becomes enabled)
+4. **Share revoke**: As User A, revoke the share → verify the note disappears from User B's list immediately
+5. **Attachment upload**: Share a note with edit permission. As User A, upload an attachment to the shared note → verify the thumbnail/icon appears on User B's view **without** refreshing
+6. **Attachment delete**: As User A, delete the attachment → verify it disappears from User B's view live
+7. **Archive/unarchive**: Share a note with User B. As User A, archive the note → verify it disappears from User B's view. Then unarchive it → verify it reappears without refresh
+
+> **Troubleshooting**: If DELETE events don't remove the note from the sharee's list, check that `REPLICA IDENTITY FULL` is set on `note_shares`. Run in Supabase Studio:
+> ```sql
+> SELECT relreplident FROM pg_class WHERE relname = 'note_shares';
+> ```
+> The value should be `f` (full). If it's `d` (default), the migration wasn't applied — run `supabase migration up`.
+
+### Step 3.5: Test Locally
 
 You'll need two accounts for this feature. Create a second test user in Supabase Studio or by signing up in an incognito window.
 
@@ -442,20 +556,22 @@ You'll need two accounts for this feature. Create a second test user in Supabase
 > ```
 > Then verify in the app (as User B) that only the explicitly shared note appears — no other notes from User A are accessible.
 
-### Step 3.5: Stage, Review & Commit
+### Step 3.6: Stage, Review & Commit
 
 1. Open **Source Control** (`Ctrl+Shift+G`)
 2. Review the changed files — this is one of the larger changesets:
    - A new migration file (enum, table, indexes, RLS policy extension, SECURITY DEFINER function, storage policy extension)
+   - A Realtime migration (REPLICA IDENTITY FULL on `note_shares`, Realtime publication)
+   - Modified or new `frontend/src/hooks/useSharedNotes.js` (three Realtime channels)
    - Modified `frontend/src/components/NoteEditor.jsx` (permission-aware edit controls)
    - Modified `frontend/src/components/NoteList.jsx` (share button, share panel, "Shared with me" view)
    - Modified `frontend/src/App.jsx` (shared notes query, share state)
    - Modified `frontend/src/App.css` (share panel, permission badges)
    - Updated `frontend/src/database.types.ts`
 3. Stage all changes
-4. Commit: `feat: note sharing with view/edit permissions, SECURITY DEFINER user lookup, and shared-viewer storage access`
+4. Commit: `feat: note sharing with view/edit permissions, Realtime sync, SECURITY DEFINER user lookup, and shared-viewer storage access`
 
-### Step 3.6: Deploy
+### Step 3.7: Deploy
 
 Follow the [Deployment Checklist](#deployment-checklist-after-each-feature).
 
@@ -506,7 +622,7 @@ You've completed Phase 4. Here's what you practiced:
 |---|---|---|---|
 | Profile Picture | Private bucket, path-based owner-only storage policies, upsert, avatar_path column | File validation (type + size), signed URL refresh, spinner overlay, initials fallback | supabase-postgres, vercel-react |
 | File Attachments | Storage buckets, path-based owner-only storage policies, signed URLs, metadata table, cascade delete | File validation (type + size), upload state, thumbnail rendering | supabase-postgres, vercel-react |
-| Share Notes | Permission enum, note_shares join table, extended RLS policies, extended storage read policies, SECURITY DEFINER function | Permission-aware UI, user lookup, share panel, shared-with-me view, shared-note avatar + attachment display, hidden attachment controls | supabase-postgres, vercel-react |
+| Share Notes | Permission enum, note_shares join table, extended RLS policies, extended storage read policies, SECURITY DEFINER function, REPLICA IDENTITY FULL, Realtime publication | Permission-aware UI, user lookup, share panel, shared-with-me view, shared-note avatar + attachment display, hidden attachment controls, three Realtime channels (shares, content, attachments) | supabase-postgres, vercel-react |
 
 **Workflow mastered**: Research → Plan → Implement → Test → Commit → Deploy
 
